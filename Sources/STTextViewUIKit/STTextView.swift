@@ -262,7 +262,6 @@ import STTextViewCommon
     public var attributedText: NSAttributedString? {
         set {
             let prevLocation = textLayoutManager.insertionPointLocations.first
-
             setString(newValue)
 
             if let prevLocation {
@@ -764,7 +763,9 @@ import STTextViewCommon
         textContentManager.performEditingTransaction {
             textContentManager.replaceContents(
                 in: textRange,
-                with: [NSTextParagraph(attributedString: replacementString)]
+                with: [
+                    NSTextParagraph(attributedString: replacementString)
+                ]
             )
         }
 

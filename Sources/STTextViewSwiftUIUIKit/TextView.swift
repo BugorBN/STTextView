@@ -30,6 +30,7 @@ public struct TextView: SwiftUI.View, TextViewModifier {
 
     @Environment(\.colorScheme) private var colorScheme
     @Binding private var text: AttributedString
+    @Binding private var textAlignment: NSTextAlignment
     @Binding private var selection: NSRange?
     private let options: Options
     private let plugins: [any STPlugin]
@@ -41,11 +42,13 @@ public struct TextView: SwiftUI.View, TextViewModifier {
     ///   - plugins: Editor plugins
     public init(
         text: Binding<AttributedString>,
+        textAlignment: Binding<NSTextAlignment>,
         selection: Binding<NSRange?> = .constant(nil),
         options: Options = [],
         plugins: [any STPlugin] = []
     ) {
         _text = text
+        _textAlignment = textAlignment
         _selection = selection
         self.options = options
         self.plugins = plugins
@@ -54,11 +57,11 @@ public struct TextView: SwiftUI.View, TextViewModifier {
     public var body: some View {
         TextViewRepresentable(
             text: $text,
+            textAlignment: $textAlignment,
             selection: $selection,
             options: options,
             plugins: plugins
         )
-        .background(.background)
     }
 }
 
@@ -68,12 +71,20 @@ private struct TextViewRepresentable: UIViewRepresentable {
     @Environment(\.lineSpacing) private var lineSpacing
 
     @Binding private var text: AttributedString
+    @Binding private var textAlignment: NSTextAlignment
     @Binding private var selection: NSRange?
     private let options: TextView.Options
     private var plugins: [any STPlugin]
 
-    init(text: Binding<AttributedString>, selection: Binding<NSRange?>, options: TextView.Options, plugins: [any STPlugin] = []) {
+    init(
+        text: Binding<AttributedString>,
+        textAlignment: Binding<NSTextAlignment>,
+        selection: Binding<NSRange?>,
+        options: TextView.Options,
+        plugins: [any STPlugin] = []
+    ) {
         self._text = text
+        self._textAlignment = textAlignment
         self._selection = selection
         self.options = options
         self.plugins = plugins
@@ -81,6 +92,10 @@ private struct TextViewRepresentable: UIViewRepresentable {
 
     func makeUIView(context: Context) -> STTextView {
         let textView = STTextView()
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = textAlignment
+        
+        textView.defaultParagraphStyle = paragraphStyle
         textView.textDelegate = context.coordinator
         textView.highlightSelectedLine = options.contains(.highlightSelectedLine)
         textView.isHorizontallyResizable = !options.contains(.wrapLines)
@@ -113,6 +128,10 @@ private struct TextViewRepresentable: UIViewRepresentable {
 //            textView.setSelectedRange(selection)
 //            textView.setNeedsLayout()
 //        }
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = textAlignment
+        textView.defaultParagraphStyle = paragraphStyle
 
         if textView.isEditable != isEnabled {
             textView.isEditable = isEnabled
